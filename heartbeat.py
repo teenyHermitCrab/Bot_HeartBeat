@@ -55,9 +55,6 @@ pixels = neopixel.NeoPixel(pin=board.A0, n=5*5, brightness=.00, auto_write=True)
 color = colorwheel(255)
 pixels[:] = [pixel * color for pixel in heart_bitmap]
 
-brightness = 0.00
-delta = 0.01
-
 # cheap way to maintain a state machine
 inOffState = False
 inRampUp = False
@@ -70,31 +67,26 @@ uart = busio.UART(board.TX, board.RX, baudrate=9600)
 us100 = adafruit_us100.US100(uart)
 
 offTimeSeconds = 0.1
-detectionThresholdMm = 110
+detectionThresholdMm = 110  # millimeters
 
+# heartbeat lights up faster, fade away is slower
+deltaRampUp = 0.025
+deltaRampDown = -0.007
 
-
-
-count = 0
 
 while True:
-    # this is time between increment/decrementing brightness in RampUp/RampDown
-    # It probably could be moved to inside RampUp/RampDown blocks
-    time.sleep(0.013)
-
-
     if (monitorDistance):
-        distance = us100.distance
-        #print("distance: %.1f" % distance)
-        inDetectionRange = (distance < detectionThresholdMm)
-        if (inDetectionRange):
-            # print("DETECTED")
-            # print("  start RampUp")
-            inRampUp = True
-            inRampDown = False
-            monitorDistance = False
-            inOffState = False
+        # as long as we are not within range, just keep checking
+        while (detectionThresholdMm < us100.distance):
+            time.sleep(0.013)
+        inRampUp = True
+        inRampDown = False
+        monitorDistance = False
+        inOffState = False
         continue
+
+    # rampUp, rampDown, and offState dont check distance. This allows a heartbeat cycle to
+    # complete once it has started
 
     if (inOffState):
         pixels.brightness = 0
@@ -104,34 +96,31 @@ while True:
         monitorDistance = True
         inRampUp = False
         inRampDown = False
-
-    # always ramp down, even if not in detection range
-    if (inRampDown):
-        deltaRampDown = -0.007
-        pixels.brightness += deltaRampDown
-        pixels.show()
-        if (pixels.brightness <= 0.001):
-            # print("  start OFF")
-            inOffState = True
-            startTime = time.time()
-            inRampUp = False
-            inRampDown = False
-            monitorDistance = False
         continue
 
     if (inRampUp):
-        #if (not inDetectionRange):
-        #    continue
-        deltaRampDown = 0.025
-        pixels.brightness += deltaRampDown
-        #pixels.show()
-        if (pixels.brightness >= 0.25):
-            # print("  start RampDown")
-            inOffState = False
-            inRampUp = False
-            inRampDown = True
-            monitorDistance = False
+        while (pixels.brightness <= 0.25):
+            pixels.brightness += deltaRampUp
+            time.sleep(0.013)
+        inOffState = False
+        inRampUp = False
+        inRampDown = True
+        monitorDistance = False
         continue
+
+    # always ramp down, even if not in detection range
+    if (inRampDown):
+        while(0.001 <= pixels.brightness):
+            pixels.brightness += deltaRampDown
+            time.sleep(0.013)
+        inOffState = True
+        inRampUp = False
+        inRampDown = False
+        monitorDistance = False
+        continue
+
+
+
 
 
 # test colors from colorwheel return result
