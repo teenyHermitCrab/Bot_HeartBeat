@@ -55,68 +55,60 @@ pixels = neopixel.NeoPixel(pin=board.A0, n=5*5, brightness=.00, auto_write=True)
 color = colorwheel(255)
 pixels[:] = [pixel * color for pixel in heart_bitmap]
 
-# cheap way to maintain a state machine
-inOffState = False
-inRampUp = False
-inRampDown = False
-monitorDistance = True  #start in this state
-inDetectionRange = False
 
 # setup for communicating with ultrasonic sensor
 uart = busio.UART(board.TX, board.RX, baudrate=9600)
 us100 = adafruit_us100.US100(uart)
 
 offTimeSeconds = 0.1
+monitorRampDelaySeconds = 0.013
 detectionThresholdMm = 110  # millimeters
+
 
 # heartbeat lights up faster, fade away is slower
 deltaRampUp = 0.025
 deltaRampDown = -0.007
 
+"""Enums not available in CircuitPython"""
+class State:
+    MONITOR = 1
+    RAMPUP = 2
+    RAMPDOWN = 3
+    OFF = 4
+
+robotState = State.MONITOR
 
 while True:
-    if (monitorDistance):
+    if (robotState == State.MONITOR):
         # as long as we are not within range, just keep checking
         while (detectionThresholdMm < us100.distance):
-            time.sleep(0.013)
-        inRampUp = True
-        inRampDown = False
-        monitorDistance = False
-        inOffState = False
+            time.sleep(monitorRampDelaySeconds)
+        robotState = State.RAMPUP
         continue
 
     # rampUp, rampDown, and offState dont check distance. This allows a heartbeat cycle to
     # complete once it has started
 
-    if (inOffState):
+    if (robotState == State.OFF):
         pixels.brightness = 0
         # OffState just waits here, no need to poll distance
         time.sleep(offTimeSeconds)
-        inOffState = False
-        monitorDistance = True
-        inRampUp = False
-        inRampDown = False
+        robotState = State.MONITOR
         continue
 
-    if (inRampUp):
-        while (pixels.brightness <= 0.25):
+    if (robotState == State.RAMPUP):
+        while (pixels.brightness <= 0.25):    # 25% brightness is good enough for max value
             pixels.brightness += deltaRampUp
-            time.sleep(0.013)
-        inOffState = False
-        inRampUp = False
-        inRampDown = True
-        monitorDistance = False
+            time.sleep(monitorRampDelaySeconds)
+        robotState = State.RAMPDOWN
         continue
 
     # always ramp down, even if not in detection range
-    if (inRampDown):
-        while(0.001 <= pixels.brightness):
+    if (robotState == State.RAMPDOWN):
+        while(0.001 <= pixels.brightness):     # use a value just above zero
             pixels.brightness += deltaRampDown
-            time.sleep(0.013)
-        inOffState = True
-        inRampUp = False
-        inRampDown = False
-        monitorDistance = False
+            time.sleep(monitorRampDelaySeconds)
+        robotState = State.OFF
         continue
 
 
