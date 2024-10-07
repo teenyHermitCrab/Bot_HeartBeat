@@ -1,6 +1,13 @@
 """
 Heartbeat rate is based on ultrasonic distance measurement.
-Heartbeat will be displayed on 5x5 NeoPixel Grid BFF  (has RGB LEDs)
+Heartbeat will be displayed on 5x5 LED grid
+
+sensor: AdaFruit US-100.  https://www.adafruit.com/product/4019
+display: 5x5 NeoPixel Grid BFF Addon for QT Py and Xiao.  https://www.adafruit.com/product/5646
+dev board: AdaFruit QT Py SAMD21 Dev Board w/STEMMA QT. https://www.adafruit.com/product/4600
+
+might want to switch to this charger
+https://www.adafruit.com/product/5397
 """
 
 import time
@@ -20,7 +27,7 @@ powerSupply.direction = digitalio.Direction.OUTPUT
 powerSupply.value = True
 
 # map of heart is used as mask for color data
-# this heart is rotated clockwise 90 degrees.  This is because the board is
+# this map is rotated clockwise 90 degrees.  This is because the board is
 # mounted anti-clockwise 90 degrees on front of bot.
 heart_bitmap = [
     0, 0, 1, 1, 0,
@@ -31,17 +38,17 @@ heart_bitmap = [
 ]
 
 # this is a 'vertical' heart map.  It is not used in following code
-heart_bitmap_vert = [
-    0, 1, 0, 1, 0,
-    1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1,
-    0, 1, 1, 1, 0,
-    0, 0, 1, 0, 0,
-]
+#heart_bitmap_vert = [
+#    0, 1, 0, 1, 0,
+#    1, 1, 1, 1, 1,
+#    1, 1, 1, 1, 1,
+#    0, 1, 1, 1, 0,
+#    0, 0, 1, 0, 0,
+#]
 
 # pixels are addressed through A0
-# auto_write was originally set to False, so that we could .show() on all pixels,
-# but doesn't seem to make a difference
+# auto_write was originally set to False, so that we could .show() on all pixels in a single command,
+# but doesn't seem to make a difference perceptually
 pixels = neopixel.NeoPixel(pin=board.A0, n=5*5, brightness=.00, auto_write=True)
 
 # NOTE: need to find documenation for colorwheel, but I believe range is [0,255]
@@ -61,7 +68,8 @@ uart = busio.UART(board.TX, board.RX, baudrate=9600)
 us100 = adafruit_us100.US100(uart)
 
 offTimeSeconds = 0.1
-monitorRampDelaySeconds = 0.013
+monitorRampDelayBaseSeconds = 0.015
+monitorRampDelaySeconds = monitorRampDelayBaseSeconds
 detectionThresholdMm = 110  # millimeters
 
 
@@ -81,9 +89,20 @@ robotState = State.MONITOR
 while True:
     if (robotState == State.MONITOR):
         # as long as we are not within range, just keep checking
-        while (detectionThresholdMm < us100.distance):
+        monitorRampDelaySeconds = monitorRampDelayBaseSeconds  # reset
+        distanceMm = us100.distance
+        #print(f"distance: {distanceMm}")
+        
+        # as long as we are not within range, just keep checking. no need to leave state
+        while (detectionThresholdMm < distanceMm):
             time.sleep(monitorRampDelaySeconds)
+            distanceMm = us100.distance
+            #print(f"distance: {distanceMm}")
         robotState = State.RAMPUP
+        # this is a way to speed up heartbeat the closer you get to bot
+        # should make this a function so it is adjustable to detection threshold, max/min heartrate
+        monitorRampDelaySeconds = monitorRampDelayBaseSeconds - ((-1.3e-4 * distanceMm) + 0.0147)
+        #print(f"  delay: {monitorRampDelaySeconds}")
         continue
 
     # rampUp, rampDown, and offState dont check distance. This allows a heartbeat cycle to
@@ -91,7 +110,7 @@ while True:
 
     if (robotState == State.OFF):
         pixels.brightness = 0
-        # OffState just waits here, no need to poll distance
+        # OFF State waits a fixed time - no need to poll distance
         time.sleep(offTimeSeconds)
         robotState = State.MONITOR
         continue
@@ -103,7 +122,8 @@ while True:
         robotState = State.RAMPDOWN
         continue
 
-    # always ramp down, even if not in detection range
+    # Always ramp down, even if not in detection range.  
+    # If aborting RAMPDOWN state based on distance, then heatbeat appears jittery
     if (robotState == State.RAMPDOWN):
         while(0.001 <= pixels.brightness):     # use a value just above zero
             pixels.brightness += deltaRampDown
