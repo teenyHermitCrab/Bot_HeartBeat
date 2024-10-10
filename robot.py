@@ -50,8 +50,8 @@ class Robot:
 
     
      # TODO change control of heartbeat to Heart Object
-     # Robot object should need to care about rampup/rampdown, just activate 
-     # ideally, we may want to just send a BPM to Heart object
+     # Robot object should not need to care about rampup/rampdown, just activate a heartbeat
+     # ideally, we may want to just send a BPM to Heart object and then stop when distance out of range
 
 
     def run(self):
