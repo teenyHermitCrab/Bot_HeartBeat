@@ -1,0 +1,4 @@
+https://learn.adafruit.com/adafruit-5x5-neopixel-grid-bff/overview
+
+
+https://github.com/adafruit/Adafruit_CircuitPython_NeoPixel

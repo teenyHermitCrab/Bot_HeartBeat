@@ -1,0 +1,31 @@
+Description
+If you're like me, you've dreamed of being a dolphin - smoothly gliding through the water. Using your echo-location abilities to detect tasty fish treats. Until genetic modifications catch up with our desires, we'll just have to make do with this handy US-100 Ultrasonic Sonar Distance Sensor and a pair of flippers. The US-100 is very similar to the popular HC-SR04 ultrasonic sensors, and even looks the same, but has a few extra tricks
+
+This sensor can run from 3-5V so you don't need any logic level shifters or dividers. Just power from whatever your microcontroller provides
+You can use in "HC-SR04" mode or in "Serial UART" mode.
+When the jumper on the back is removed, it acts like an HC-SR04 with a trigger and echo pin. When the jumper is in place, you use 9600 baud UART to communicate with the sensor. In UART mode, send 0x55 and read back two bytes (16-bit value) that is mm distance, or 0x50 to read the temperature in degrees C. Handy if you want to use with a computer and a USB-serial converter, or some other device that can't do the special timing needed for the HC-SR04 trigger/echo.
+
+These ubiquitous sensors are really common in robotics projects, but they can also be used for automation, interactive art, and motion sensing. They work at about 2cm to 450cm away, but we think 10cm-250cm will get you the best results.
+
+In HC-SR04 mode (no jumper), you can use this sensor with Arduino, CircuitPython (for microcontrollers or Raspberry Pi) or MakeCode
+
+In UART mode (jumper placed), you can use this sensor with Arduino or CircuitPython
+
+
+
+Technical Details
+Power & Logic Voltage: DC 2.4V~5.5V
+Current: 2mA
+Operating Temperature: -20~ + 70º
+Measuring Angle: Less than 15º
+Detection Distance: 2cm – 450 cm
+Accuracy: 0.3cm +1%
+Sensor dimensions (excluding header): 45 x 20mm
+Weight: 9g
+
+
+
+https://github.com/adafruit/Adafruit_CircuitPython_US100
+
+
+https://learn.adafruit.com/ultrasonic-sonar-distance-sensors/python-circuitpython
