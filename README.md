@@ -8,6 +8,9 @@ Simple project using following hardware:
 This adds heartbeat to a bot sculpture. Heartbeat rate is based on ultrasonic distance measurement.
 Heartbeat will be displayed on 5x5 LED grid. 
 
+heartbeat_demo.mp4 is a short video that shows bot and heartbeat.  
+This was recorded just after I found that bot battery backpack needs replacing, so running on external power.
+
 Microprocessor expects to find code.py in root location
 
 Follow steps listed here to install CircuitPython onto dev board.
