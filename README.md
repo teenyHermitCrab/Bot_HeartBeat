@@ -34,6 +34,8 @@ Heartbeat will be displayed on 5x5 LED grid.
   - brightness
   - distance-to-heartrate function
 - Are there other heartbeat modes to add? a rainbow color transition, scrolling heartbeat, is 5x5 enough to grow/shrink heartbeat image?
+- There is no `threading` module in CircuitPython, but `asnycio` module should suffice.  Implement a version of this that uses async/await for sensor and heartbeat display
 
 ## Notes
+Add a section here that points to a link how to install CircuitPython
 - https://learn.adafruit.com/adafruit-qt-py/what-is-circuitpython
