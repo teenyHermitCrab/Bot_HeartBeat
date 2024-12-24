@@ -1,5 +1,8 @@
 # Bot Lord Humongous
 Heartbeat activates if bot senses nearby object.  Heartrate speeds up as object moves closer
+<br/>
+<br/>
+![](https://github.com/teenyHermitCrab/Bot_LordHumongous/blob/main/hearbeat_demo.gif)
 
 ## Description
 This adds heartbeat to a bot sculpture. Heartbeat rate is based on ultrasonic distance measurement.
@@ -19,8 +22,6 @@ Heartbeat will be displayed on 5x5 LED grid.
 
 
 
-## Demo
-![](https://github.com/teenyHermitCrab/Bot_LordHumongous/blob/main/hearbeat_demo.gif)
 
 
 
